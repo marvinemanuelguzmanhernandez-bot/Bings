@@ -1,0 +1,9 @@
+{
+  "user": {
+    "id": 1,
+    "nombre": "juan",
+    "foto": "www.foto.png",
+    "mensaje": "hola",
+    "creadoen": "28/08/2025"
+  }
+}
