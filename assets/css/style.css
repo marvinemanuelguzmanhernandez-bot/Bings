@@ -1427,21 +1427,20 @@ header h1 {
 
 .creditos-scroll-content {
   position: absolute;
-  top: 100%;
+  top: 0;
   width: 100%;
   max-width: 720px;
   left: 50%;
   transform: translate(-50%, 0);
   padding: 0 24px 60px;
-  animation: creditosScroll 16s linear infinite;
+  animation: creditosScroll 20s linear infinite;
 }
 
-/* Empieza justo debajo del área visible (aparece de inmediato)
-   y termina cuando ha subido su propia altura + una pantalla completa,
-   garantizando que salga totalmente por arriba sin importar cuánto texto tenga. */
+/* Aparece visible de inmediato al abrir la vista (ya no entra desde abajo)
+   y sube hasta salir por completo de la parte superior. */
 @keyframes creditosScroll {
   from { transform: translate(-50%, 0); }
-  to   { transform: translate(-50%, calc(-100% - 100dvh)); }
+  to   { transform: translate(-50%, -100%); }
 }
 
 .creditos-scroll-area:hover .creditos-scroll-content {
