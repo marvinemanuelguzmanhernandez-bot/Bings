@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bing! - Iniciar Sesión</title>
+  <link rel="shortcut icon" href="assets/img/iconos bing-08.png" type="image/x-icon">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="login-page-body">
+
+  <img src="assets/PNG/Mesa de trabajo 2.png" alt="png2" class="bg-img-top-right">
+
+  <div class="login-container-split">
+    <!-- Panel Izquierdo con Ilustración y Marca -->
+    <div class="login-left-panel">
+      <div class="brand-box">
+        <img src="assets/img/iconos bing-08.png" alt="Bing Logo" class="main-logo-img">
+        <span class="brand-slogan">Tu lugar favorito</span>
+      </div>
+      <div class="illustration-box">
+        <img src="assets/img/Imagen Medio.png" alt="Ilustración Bing" class="login-hero-img">
+      </div>
+    </div>
+
+    <!-- Panel Derecho: Formulario -->
+    <div class="login-right-panel">
+      <div class="login-card">
+        <div class="login-header">
+          <h2 id="form-title">Iniciar sesión</h2>
+          <p id="form-subtitle">Bienvenido de nuevo</p>
+        </div>
+
+        <div class="form-group">
+          <label for="email-input">Correo Electrónico</label>
+          <div class="input-with-icon">
+            <input type="email" id="email-input" placeholder="ejemplo@gmail.com">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password-input">Contraseña</label>
+          <div class="input-with-icon">
+            <input type="password" id="password-input" placeholder="Contraseña...">
+          </div>
+        </div>
+
+        <!-- Campo para confirmar contraseña (solo aparece al registrarse) -->
+        <div class="form-group" id="confirm-password-group" style="display: none;">
+          <label for="confirm-password-input">Confirmar Contraseña</label>
+          <div class="input-with-icon">
+            <input type="password" id="confirm-password-input" placeholder="Repite tu contraseña...">
+          </div>
+        </div>
+
+        <button id="start-chat-btn" class="btn-primary-custom" disabled>Iniciar Sesión</button>
+
+        <div class="divider-or"><span>o continuar con</span></div>
+
+        <!-- Botón de Google -->
+        <button id="google-login-btn" class="btn-google-custom">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+          Continuar con Google
+        </button>
+
+        <!-- Opción de Registro / Cambiar modo -->
+        <div class="auth-toggle" style="margin-top: 20px; text-align: center;">
+          <p id="toggle-message" style="font-size: 14px; color: #666;">¿No tienes cuenta? <a href="#" id="toggle-link" style="color: #6a11cb; font-weight: bold; text-decoration: none;">Regístrate</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/login.js"></script>
+</body>
+</html>

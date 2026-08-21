@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat de Último Año</title>
+  <title>Bing! - Tu lugar favorito</title>
 
   <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="shortcut icon" href="assets/img/iconos bing-08.png" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+  
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -13,71 +16,413 @@
 
 <body>
 
-  <header>
-    <h1>💬 Chat de Último Año</h1>
-    <button onclick="logoutUser()" id="logout-btn">Cerrar Sesion</button>
-  </header>
-
+  <!-- MODAL DE INICIO DE SESIÓN -->
   <div id="user-modal">
+    <div class="modal-deco-wave"></div>
+    <div class="modal-deco-circle">
+      <svg viewBox="0 0 100 100" class="modal-deco-squiggle" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20,70 C20,40 45,55 45,35 C45,15 65,15 65,40 C65,60 80,55 80,75" stroke="#c1b3d8" stroke-width="9" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <div class="modal-corner-badge">
+      <img src="assets/img/Mesa de trabajo 5.png" alt="Bing!">
+    </div>
+
     <div class="modal-content">
-      <h2>Bienvenido, por favor ingresa tu nombre</h2>
-
-      <input
-        type="text"
-        id="username-input"
-        placeholder="Tu nombre..."
-      >
-
-      <h3>Elige tu Avatar:</h3>
+      <img src="assets/img/Mesa de trabajo 7.png" alt="B!" class="modal-logo-circle">
+      <h2>Elige tu Avatar</h2>
+      <p class="subtitle">Selecciona un avatar que te represente</p>
 
       <div class="avatars">
-        <img class="avatar-option" src="assets/img/Woman free icons designed by Prosymbols Premium.jpeg">
-        <img class="avatar-option" src="assets/img/Jomari 2.jpeg">
-        <img class="avatar-option" src="assets/img/Minimalistic avatar icon of a brunette girl _ Минималистичная иконка аватар девушки.jpeg">
-        <img class="avatar-option" src="assets/img/descarga (1).jpeg">
-        <img class="avatar-option" src="assets/img/Women Formal.jpeg">
-        <img class="avatar-option" src="assets/img/descarga (2).jpeg">
+        <img class="avatar-option" src="assets/img/avatars icons-02.png">
+        <img class="avatar-option" src="assets/img/avatars icons-03.png">
+        <img class="avatar-option" src="assets/img/avatars icons-04.png">
+        <img class="avatar-option" src="assets/img/avatars icons-05.png">
+        <img class="avatar-option" src="assets/img/avatars icons-06.png">
+        <img class="avatar-option" src="assets/img/avatars icons-07.png">
+        <img class="avatar-option" src="assets/img/avatars icons-08.png">
+        <img class="avatar-option" src="assets/img/avatars icons-09.png">
+        <img class="avatar-option" src="assets/img/avatars icons-10.png">
+        <img class="avatar-option" src="assets/img/avatars icons-11.png">
+        <img class="avatar-option" src="assets/img/avatars icons-12.png">
+        <img class="avatar-option" src="assets/img/avatars icons-13.png">
       </div>
 
-      <button id="start-chat-btn" disabled>
-        Entrar al chat
-      </button>
+      <label class="select-label">Elige tu Carrera:</label>
+      <select id="career-select">
+        <option value="" disabled selected>Selecciona tu carrera...</option>
+        <option value="Info">Informatica</option>
+        <option value="Diseño">Diseño Grafico</option>
+        <option value="Admon">Administracion de empresas</option>
+        <option value="Ciencias">Ciencias y Humanidades</option>
+      </select>
+
+      <div class="modal-bottom-bar">
+        <span class="input-icon">👤</span>
+        <input type="text" id="username-input" placeholder="Ingresa tu Nombre">
+        <button id="start-chat-btn" disabled>Continuar <span class="arrow">→</span></button>
+      </div>
     </div>
   </div>
 
-  <div id="chat-container" style="display:none;">
-    <div id="messages"></div>
+  <!-- CONTENEDOR PRINCIPAL -->
+  <div id="chat-container">
 
-    <div class="input-area">
-      <input type="text" id="message-input" placeholder="Escribe un mensaje...">
-      <button id="send-btn" disabled>
-        Enviar
-      </button>
+    <!-- RIEL LATERAL ESTILO WHATSAPP (solo PC y laptop) -->
+    <aside class="app-rail">
+      <div class="app-rail-top">
+        <button type="button" class="app-rail-btn" data-view="view-estados" onclick="switchView('view-estados')" title="Novedades">
+          <img src="assets/img/iconos bing-06.png" alt="Novedades">
+        </button>
+        <button type="button" class="app-rail-btn" data-view="view-comunidades" onclick="switchView('view-comunidades')" title="Comunidades">
+          <img src="assets/img/iconos bing-07.png" alt="Comunidades">
+        </button>
+        <button type="button" class="app-rail-btn" data-view="view-chat" onclick="switchView('view-chat')" title="Chats">
+          <img src="assets/img/iconos bing_Mesa de trabajo 1.png" alt="Chats">
+        </button>
+      </div>
+      <div class="app-rail-bottom">
+        <button type="button" class="app-rail-btn" data-view="view-perfil" onclick="switchView('view-perfil')" title="Tú">
+          <img src="assets/img/iconos bing-04.png" alt="Tú">
+        </button>
+        <button type="button" class="app-rail-btn app-rail-logout" onclick="logoutUser()" title="Salir">🚪</button>
+      </div>
+    </aside>
+
+    <div class="app-content-column">
+
+    <div class="app-view-container">
+      
+      <!-- VISTA 1: CHAT DE CARRERA -->
+      <div id="view-chat" class="app-view">
+        <div class="wa-shell">
+
+          <!-- Barra lateral estilo WhatsApp (visible en laptop/PC) -->
+          <aside class="wa-sidebar">
+            <div class="wa-sidebar-header">
+              <span class="wa-sidebar-brand">Bing!</span>
+              <div class="wa-sidebar-icons">
+                <span class="wa-icon-btn" title="Chats">💬</span>
+                <span class="wa-icon-btn" title="Más opciones">⋮</span>
+              </div>
+            </div>
+
+            <div class="wa-sidebar-search">
+              <span class="estados-search-icon">🔍</span>
+              <input type="text" class="wa-sidebar-search-input" placeholder="Buscar o empezar un chat nuevo">
+            </div>
+
+            <div class="wa-sidebar-tabs">
+              <button type="button" class="wa-tab active">Todos</button>
+              <button type="button" class="wa-tab">No leídos</button>
+              <button type="button" class="wa-tab">Grupos</button>
+              <button type="button" class="wa-tab">Favorito</button>
+            </div>
+
+            <div class="wa-chat-list">
+              <div class="wa-chat-list-item active">
+                <img id="sidebar-career-avatar" src="assets/img/foto de perfil del grupo.jpeg" alt="Avatar del chat">
+                <div class="wa-chat-list-info">
+                  <strong id="sidebar-career-name">Chat de Carrera</strong>
+                  <span>Grupo de tu carrera · INTEC</span>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Panel principal del chat -->
+          <div class="wa-chat-main">
+            <div class="wa-header">
+              <img class="wa-header-avatar" src="assets/img/foto de perfil del grupo.jpeg" alt="Avatar del chat">
+              <div class="wa-header-title-wrap">
+                <div class="chat-header-banner" id="chat-room-title">Chat de Carrera</div>
+                <span class="wa-header-status">Activo en INTEC</span>
+              </div>
+              <div class="wa-header-icons">
+                <span class="wa-icon-btn" title="Llamar">📞</span>
+                <span class="wa-icon-btn" title="Buscar" onclick="toggleChatSearch()">🔍</span>
+                <span class="wa-icon-btn" title="Más opciones">⋮</span>
+              </div>
+            </div>
+
+            <div id="chat-search-bar" class="wa-chat-search-bar hidden-init">
+              <span class="estados-search-icon">🔍</span>
+              <input type="text" id="chat-search-input" placeholder="Buscar en la conversación" oninput="filterChatMessages(this.value)">
+              <span class="wa-chat-search-close" onclick="toggleChatSearch()">✕</span>
+            </div>
+
+            <div id="messages"></div>
+
+            <div class="input-area">
+              <div class="wa-input-pill">
+                <span class="wa-icon-btn wa-attach-btn" title="Adjuntar">📎</span>
+                <input type="text" id="message-input" placeholder="Escribe un mensaje...">
+              </div>
+              <button id="send-btn" disabled aria-label="Enviar mensaje">➤</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- VISTA 2: ESTADOS (NOVEDADES) -->
+      <div id="view-estados" class="app-view active">
+        <div class="estados-top-bar">
+          <span class="estados-back-arrow" onclick="switchView('view-chat')">&lt;</span>
+          <h2>Estados</h2>
+          <div class="estados-options-icon">⋮</div>
+        </div>
+
+        <div class="estados-search-wrapper">
+          <span class="estados-search-icon">🔍</span>
+          <input type="text" id="estados-search-input" class="estados-search-input" placeholder="Buscar estado" oninput="filterEstados(this.value)">
+        </div>
+
+        <div class="estados-layout">
+          <!-- Columna Izquierda -->
+          <div class="estados-left-col">
+            <div class="my-status-card">
+              <div class="my-status-avatar-wrapper" onclick="toggleStatusTypeMenu(event)">
+                <img id="status-my-avatar" src="assets/img/iconos bing-04.png" alt="Mi avatar">
+                <span class="status-plus-badge">+</span>
+
+                <!-- Menú tipo WhatsApp: Foto/Video o Texto -->
+                <div id="status-type-popup" class="status-type-popup hidden-init">
+                  <button type="button" onclick="chooseStatusType('image')">
+                    <span class="popup-icon">📷</span> Foto o video
+                  </button>
+                  <button type="button" onclick="chooseStatusType('text')">
+                    <span class="popup-icon">📝</span> Texto
+                  </button>
+                </div>
+              </div>
+              <div class="my-status-text" onclick="toggleStatusTypeMenu(event)">
+                <strong class="my-status-title">Mi estado</strong>
+                <span class="my-status-subtitle">añade una actualización</span>
+              </div>
+              <button type="button" class="my-status-camera-btn" onclick="chooseStatusType('image')" aria-label="Añadir foto">📷</button>
+            </div>
+
+            <p class="recent-updates-title">Actualizaciones recientes</p>
+            <div id="estados-list"></div>
+          </div>
+
+          <!-- Columna Derecha (Panel de Creación Interactivo) -->
+          <div class="estados-right-col" id="estados-right-col">
+            <div class="creator-mobile-header">
+              <span class="creator-back-arrow" onclick="closeStatusCreator()">&lt;</span>
+              <span>Nuevo estado</span>
+            </div>
+
+            <!-- ESTADO INFO: solo información, visible por defecto -->
+            <div class="status-info-state" id="status-info-state">
+              <img src="assets/img/iconos bing-02.png" alt="Icono Bing" class="status-creator-icon">
+              <h3>Comparte Estado</h3>
+              <p class="status-creator-desc">Comparte fotos, videos y texto que desaparecen después de 24 horas.</p>
+            </div>
+
+            <!-- ESTADO COMPOSER: aparece solo tras elegir Foto o Texto en el menú -->
+            <div class="status-composer hidden-init" id="status-composer">
+              <input type="file" id="status-file-input" accept="image/*" class="hidden-file-input" onchange="handleFileSelected(this)">
+
+              <div id="image-preview-wrapper" class="image-preview-wrapper hidden-init">
+                <img id="image-preview" src="" alt="Vista previa">
+                <button type="button" class="image-preview-remove" onclick="removeImagePreview()" aria-label="Quitar imagen">✕</button>
+              </div>
+
+              <textarea id="status-text-input" placeholder="¿Qué estás pensando?"></textarea>
+
+              <div class="composer-actions">
+                <button type="button" class="composer-attach-btn" onclick="document.getElementById('status-file-input').click()">📎 Adjuntar foto</button>
+                <button onclick="uploadStatus()" class="status-publish-btn">Publicar Estado</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISTA 3: COMUNIDADES -->
+      <div id="view-comunidades" class="app-view">
+        <h2>Comunidades INTEC</h2>
+        <p class="community-subtitle">Grupos activos de tu institución.</p>
+        <div class="community-card">
+          <strong>Promoción INTEC Último Año</strong>
+          <p>Grupo exclusivo de la institución.</p>
+        </div>
+      </div>
+
+      <!-- VISTA 4: PERFIL (TÚ) -->
+      <div id="view-perfil" class="app-view">
+        <div class="profile-inner-container">
+          
+          <div class="profile-header-nav">
+            <span class="profile-back-arrow" onclick="switchView('view-chat')">&lt;</span>
+            <h2>PERFIL</h2>
+            <div></div>
+          </div>
+
+          <div class="profile-avatar-container">
+            <img id="profile-avatar-img" src="assets/img/iconos bing-04.png" alt="Perfil">
+          </div>
+
+          <!-- Tarjeta Oscura de Perfil -->
+          <div class="profile-dark-card">
+            <div class="profile-card-row">
+              <div>
+                <span class="profile-field-label">NOMBRE</span>
+                <strong id="p-name">-</strong>
+              </div>
+              <span class="profile-arrow">&gt;</span>
+            </div>
+
+            <div class="profile-card-row">
+              <div>
+                <span class="profile-field-label">CARRERA</span>
+                <strong id="p-career">-</strong>
+              </div>
+              <span class="profile-arrow">&gt;</span>
+            </div>
+
+            <div class="profile-card-row">
+              <div>
+                <span class="profile-field-label">ESTADO</span>
+                <strong>Activo en INTEC</strong>
+              </div>
+              <span class="profile-arrow">&gt;</span>
+            </div>
+
+            <div class="profile-card-row last">
+              <div>
+                <span class="profile-field-label">INSTITUCIÓN</span>
+                <strong>CEMNG INTEC</strong>
+              </div>
+              <span class="profile-arrow">&gt;</span>
+            </div>
+          </div>
+
+          <!-- Botón de Créditos -->
+          <div class="profile-credits-btn-wrapper">
+            <button onclick="switchView('view-creditos')" class="profile-credits-trigger"> Ver Créditos de la Aplicación
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- VISTA 5: CRÉDITOS (estilo créditos de película) -->
+      <div id="view-creditos" class="app-view">
+        <div class="creditos-header">
+          <span class="creditos-back-arrow" onclick="switchView('view-perfil')">&lt;</span>
+          <h2 class="creditos-title">Creditos</h2>
+          <span class="creditos-header-spacer"></span>
+        </div>
+
+        <div class="creditos-scroll-area">
+          <div class="creditos-scroll-content">
+
+            <h3 class="creditos-section-title">Diseño IU/UX</h3>
+
+            <div class="creditos-item">
+              <div class="creditos-icon"><span>🔑</span></div>
+              <div class="creditos-item-info">
+                <strong>Inicio de Sesión</strong>
+                <span>Sophia Mancia, Elvira Kristel, Tatiana Paz</span>
+              </div>
+            </div>
+
+            <div class="creditos-item">
+              <div class="creditos-icon"><span>🖥️</span></div>
+              <div class="creditos-item-info">
+                <strong>Pantalla principal + logo</strong>
+                <span>Ashley Nalissa</span>
+              </div>
+            </div>
+
+            <div class="creditos-item">
+              <div class="creditos-icon"><img src="assets/img/iconos bing-04.png" alt=""></div>
+              <div class="creditos-item-info">
+                <strong>Perfil</strong>
+                <span>Nahomy Cálix, Raquel Gutierrez, Abel Campos</span>
+              </div>
+            </div>
+
+            <div class="creditos-item">
+              <div class="creditos-icon"><span>👥</span></div>
+              <div class="creditos-item-info">
+                <strong>Grupos por carrera</strong>
+                <span>Sheily Mejia</span>
+              </div>
+            </div>
+
+            <div class="creditos-item">
+              <div class="creditos-icon"><span>💬</span></div>
+              <div class="creditos-item-info">
+                <strong>Pantalla principal de grupos</strong>
+                <span>Jearim Castro</span>
+              </div>
+            </div>
+
+            <div class="creditos-item">
+              <div class="creditos-icon"><img src="assets/img/iconos bing-02.png" alt=""></div>
+              <div class="creditos-item-info">
+                <strong>Pantalla de Carga</strong>
+                <span>Dayanna Mendez</span>
+              </div>
+            </div>
+
+            <div class="creditos-item">
+              <div class="creditos-icon"><img src="assets/img/iconos bing-06.png" alt=""></div>
+              <div class="creditos-item-info">
+                <strong>Stories</strong>
+                <span>Astrid Cerritos</span>
+              </div>
+            </div>
+
+            <div class="creditos-item">
+              <div class="creditos-icon"><span>🖱️</span></div>
+              <div class="creditos-item-info">
+                <strong>Creditos</strong>
+                <span>Zoé Mendoza</span>
+              </div>
+            </div>
+
+            <h3 class="creditos-section-title creditos-section-title-upper">Desarrollo de App</h3>
+
+            <div class="creditos-item">
+              <div class="creditos-icon"><span class="creditos-icon-code">&lt;/&gt;</span></div>
+              <div class="creditos-item-info">
+                <strong>Desarrollo de codigo</strong>
+                <span>Amy Damaris, Sheril Zambrano, Sheiring Zambrano, Franklin Garcia, Marvin David, Marvin Guzman, Daniel Stanley</span>
+              </div>
+            </div>
+
+            <div class="creditos-item">
+              <div class="creditos-icon"><span>🌐</span></div>
+              <div class="creditos-item-info">
+                <strong>Desarrollo de diseño de página</strong>
+                <span>Dylan Moncada, Marvin Guzman, Kevin Lopez</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
     </div>
 
+    <!-- BARRA DE NAVEGACIÓN INFERIOR (solo tablet y celular) -->
+    <nav class="bottom-nav">
+      <button class="nav-tab active" data-view="view-estados" onclick="switchView('view-estados')">Novedades</button>
+      <button class="nav-tab" data-view="view-comunidades" onclick="switchView('view-comunidades')">Comunidades</button>
+      <button onclick="logoutUser()" id="logout-btn">Salir</button>
+      <button class="nav-tab" data-view="view-chat" onclick="switchView('view-chat')">Chats</button>
+      <button class="nav-tab" data-view="view-perfil" onclick="switchView('view-perfil')">Tú</button>
+    </nav>
+
+    </div>
   </div>
 
   <script src="assets/js/app.js"></script>
-
-  <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-analytics.js";
-  
-  const firebaseConfig = {
-    apiKey: "AIzaSyCUV_dIOyzJb9LYq3lFQnSBctbSidc_0Go",
-    authDomain: "bings-61532.firebaseapp.com",
-    projectId: "bings-61532",
-    storageBucket: "bings-61532.firebasestorage.app",
-    messagingSenderId: "102563196836",
-    appId: "1:102563196836:web:878c7c32a51179a9365b31",
-    measurementId: "G-FSXZGZDS7D"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
-
 </body>
 </html>
