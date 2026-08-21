@@ -14,6 +14,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100dvh; /* usa la altura visible real en móvil (barra del navegador incluida) */
   margin: 0;
 }
 
@@ -70,7 +71,8 @@ header h1 {
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 100vh;
+  height: 100dvh;
   background: linear-gradient(135deg, #fdfbf7 0%, #efebfc 100%);
   display: flex;
   justify-content: center;
@@ -324,10 +326,12 @@ header h1 {
   body {
     padding: 20px;
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
   }
   #chat-container {
     height: calc(100vh - 40px);
+    height: calc(100dvh - 40px);
     border-radius: 12px;
   }
 }
@@ -335,10 +339,12 @@ header h1 {
 @media (max-width: 699px) {
   body {
     height: 100vh;
+    height: 100dvh; /* evita que la barra de navegación inferior quede oculta bajo la barra del navegador */
     overflow: hidden;
   }
   #chat-container {
     height: 100vh;
+    height: 100dvh;
   }
 }
 
@@ -1183,7 +1189,8 @@ header h1 {
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 100vh;
+    height: 100dvh;
     border-radius: 0;
     z-index: 500;
     transform: translateX(100%);
@@ -1598,15 +1605,13 @@ header h1 {
   font-family: 'Quicksand', sans-serif;
   background-color: #f8f7fc;
   height: 100vh;
+  height: 100dvh; /* corrige que el formulario quedara fuera de la pantalla visible en celular */
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  border-radius: 28px;
-
-
-
-
+  overflow-y: auto; /* si el contenido no cabe (pantallas muy chicas), se puede hacer scroll en vez de recortarse */
 }
 
 .login-container-split {
@@ -1632,11 +1637,7 @@ header h1 {
 
   background-size: 60% 80%;
 
-  z-index: -1;
-
-  background-position: 
-  bottom left
-  ;
+  background-position: bottom left;
 }
 
 .bg-img-top-right {
