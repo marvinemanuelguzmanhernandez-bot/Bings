@@ -1433,7 +1433,7 @@ header h1 {
   left: 50%;
   transform: translate(-50%, 0);
   padding: 0 24px 60px;
-  animation: creditosScroll 38s linear infinite;
+  animation: creditosScroll 16s linear infinite;
 }
 
 /* Empieza justo debajo del área visible (aparece de inmediato)
@@ -1441,7 +1441,7 @@ header h1 {
    garantizando que salga totalmente por arriba sin importar cuánto texto tenga. */
 @keyframes creditosScroll {
   from { transform: translate(-50%, 0); }
-  to   { transform: translate(-50%, calc(-100% - 100vh)); }
+  to   { transform: translate(-50%, calc(-100% - 100dvh)); }
 }
 
 .creditos-scroll-area:hover .creditos-scroll-content {
