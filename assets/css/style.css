@@ -448,6 +448,7 @@ header h1 {
 
 /* --- Barra lateral (solo laptop / PC) --- */
 .wa-sidebar {
+  position: relative;
   display: none;
   flex-direction: column;
   width: 300px;
@@ -1857,3 +1858,49 @@ header h1 {
 }
 .btn-google-custom img { width: 18px; }
 .btn-google-custom:hover { background-color: #f7f7f7; border-color: #bbb; }
+
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24
+}
+
+.new-chat-panel {
+  position: absolute;
+  inset: 0;
+  background: #1d1d1b;
+  z-index: 10;
+  overflow-y: auto;
+}
+
+.new-chat-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid #2c2c2a;
+}
+
+.new-chat-panel-header .estados-back-arrow {
+  color: #c1b3d8;
+  font-size: 20px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.new-chat-panel-header .estados-back-arrow:hover {
+  color: #fff1a6;
+}
+
+.new-chat-panel-header strong {
+  color: #efebfc;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+#users-list {
+  padding: 4px 8px 16px;
+}

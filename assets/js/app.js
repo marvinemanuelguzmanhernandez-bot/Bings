@@ -20,6 +20,10 @@ let photoURL = null;
 let selectedAvatar = null;
 let userCareer = null;
 let unsubscribeMessages = null;
+let currentChatType = "grupo";
+let currentPrivateChatId = null;
+let unsubscribePrivateChats = null;
+let allUsersCache = [];
 
 const userModal = document.getElementById("user-modal");
 const startChatBtn = document.getElementById("start-chat-btn");
@@ -70,6 +74,7 @@ window.addEventListener("load", () => {
           // Si no tiene perfil (es nuevo), mostrar el modal para elegir nombre, carrera y avatar
           showLoginModal();
         }
+        listenForMyPrivateChats();
       } catch (error) {
         console.error("Error al verificar perfil:", error);
         showLoginModal();
@@ -138,6 +143,7 @@ startChatBtn.addEventListener("click", async () => {
     sendBtn.disabled = true;
 
     listenForMessages();
+    listenForMyPrivateChats();
 
   } catch (error) {
     console.error("Error al guardar perfil:", error);
@@ -160,20 +166,71 @@ async function sendMessage() {
   const safeName = displayName.length > 30 ? displayName.substring(0, 30) : displayName;
 
   try {
-    await db.collection("mensajes").add({
-      uid: currentUser,
-      career: userCareer, 
-      name: safeName,
-      photo: photoURL || defaultAvatar,
-      text: text,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    if (currentChatType === "privado" && currentPrivateChatId) {
+      const chatRef = db.collection("chats_privados").doc(currentPrivateChatId);
+
+      await chatRef.collection("mensajes").add({
+        uid: currentUser,
+        name: safeName,
+        photo: photoURL || defaultAvatar,
+        text: text,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      await chatRef.update({
+        ultimoMensaje: text,
+        ultimaActividad: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } else {
+      await db.collection("mensajes").add({
+        uid: currentUser,
+        career: userCareer,
+        name: safeName,
+        photo: photoURL || defaultAvatar,
+        text: text,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
 
     messageInput.value = "";
     sendBtn.disabled = true;
   } catch (error) {
     console.error("Error al enviar mensaje:", error);
   }
+}
+
+ function renderMessageBubble(msg) {
+  const msgDiv = document.createElement("div");
+  msgDiv.classList.add("message");
+  msgDiv.classList.add(msg.uid === currentUser ? "mine" : "other");
+
+  const img = document.createElement("img");
+  img.src = msg.photo || defaultAvatar;
+  img.onerror = () => { img.src = defaultAvatar; };
+
+  const contentDiv = document.createElement("div");
+  contentDiv.classList.add("message-content");
+
+  const nameNode = document.createElement("div");
+  nameNode.classList.add("message-name");
+  nameNode.textContent = msg.name || "Anónimo";
+
+  const textNode = document.createElement("div");
+  textNode.textContent = msg.text;
+
+  const timeNode = document.createElement("div");
+  timeNode.classList.add("timestamp");
+  if (msg.createdAt?.toDate) {
+    timeNode.textContent = msg.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  contentDiv.appendChild(nameNode);
+  contentDiv.appendChild(textNode);
+  contentDiv.appendChild(timeNode);
+
+  msgDiv.appendChild(img);
+  msgDiv.appendChild(contentDiv);
+  messagesDiv.appendChild(msgDiv);
 }
 
 function listenForMessages() {
@@ -187,9 +244,7 @@ function listenForMessages() {
       let messagesList = [];
       snapshot.forEach(doc => {
         const msg = doc.data();
-        if (msg.text) {
-          messagesList.push(msg);
-        }
+        if (msg.text) messagesList.push(msg);
       });
 
       messagesList.sort((a, b) => {
@@ -198,42 +253,40 @@ function listenForMessages() {
         return timeA - timeB;
       });
 
-      messagesList.forEach(msg => {
-        const msgDiv = document.createElement("div");
-        msgDiv.classList.add("message");
-        msgDiv.classList.add(msg.uid === currentUser ? "mine" : "other");
+      messagesList.forEach(renderMessageBubble);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    });
+}
 
-        const img = document.createElement("img");
-        img.src = msg.photo || defaultAvatar;
-        img.onerror = () => { img.src = defaultAvatar; };
+function listenForPrivateMessages(chatId) {
+  // 1. IMPORTANTE: Cancelar la escucha del chat anterior (o del grupo)
+  if (unsubscribeMessages) unsubscribeMessages();
 
-        const contentDiv = document.createElement("div");
-        contentDiv.classList.add("message-content");
+  // 2. Escuchar la subcolección del chat privado actual
+  unsubscribeMessages = db.collection("chats_privados")
+    .doc(chatId)
+    .collection("mensajes")
+    .onSnapshot(snapshot => {
+      messagesDiv.innerHTML = "";
 
-        const nameNode = document.createElement("div");
-        nameNode.classList.add("message-name");
-        nameNode.textContent = msg.name || "Anónimo";
-
-        const textNode = document.createElement("div");
-        textNode.textContent = msg.text;
-
-        const timeNode = document.createElement("div");
-        timeNode.classList.add("timestamp");
-
-        if (msg.createdAt?.toDate) {
-          timeNode.textContent = msg.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
-
-        contentDiv.appendChild(nameNode);
-        contentDiv.appendChild(textNode);
-        contentDiv.appendChild(timeNode);
-
-        msgDiv.appendChild(img);
-        msgDiv.appendChild(contentDiv);
-        messagesDiv.appendChild(msgDiv);
+      let messagesList = [];
+      snapshot.forEach(doc => {
+        const msg = doc.data();
+        if (msg.text) messagesList.push(msg);
       });
 
+      // Ordenar por fecha en JS de forma segura
+      messagesList.sort((a, b) => {
+        let timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : Date.now();
+        let timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : Date.now();
+        return timeA - timeB;
+      });
+
+      // Renderizar mensajes
+      messagesList.forEach(renderMessageBubble);
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }, error => {
+      console.error("Error al escuchar mensajes privados:", error);
     });
 }
 
@@ -327,7 +380,7 @@ function removeImagePreview() {
   if (preview) preview.src = "";
 }
 
-function uploadStatus() {
+async function uploadStatus() {
   const textInput = document.getElementById("status-text-input");
   const fileInput = document.getElementById("status-file-input");
   const preview = document.getElementById("image-preview");
@@ -339,23 +392,87 @@ function uploadStatus() {
     return;
   }
 
-  // La imagen ya fue leída como dataURL para la vista previa; la reutilizamos directo.
-  appendStatusToList(text, hasImage ? preview.src : null);
-  closeStatusCreator();
+  if (!currentUser || !displayName) {
+    console.error("Usuario no autenticado");
+    return;
+  }
+
+  const ahora = Date.now();
+  const expiracion = ahora + (24 * 60 * 60 * 1000); // 24 horas
+
+  try {
+    await db.collection("estados").add({
+      usuario_id: displayName,
+      uid: currentUser,
+      texto: text,
+      imagen_url: hasImage ? preview.src : null, // Si da error por tamaño, habrá que usar Firebase Storage
+      creado_en: ahora,
+      expira_en: expiracion
+    });
+
+    // Limpiar inputs al terminar
+    textInput.value = "";
+    fileInput.value = "";
+    if (preview) preview.src = "";
+
+    closeStatusCreator();
+  } catch (error) {
+    console.error("Error al subir el estado:", error);
+    alert("Hubo un error al publicar tu estado.");
+  }
 }
 
-function appendStatusToList(text, imgSrc) {
+function listenForEstados() {
+  if (typeof unsubscribeEstados === "function") {
+    unsubscribeEstados();
+  }
+
+  const ahora = Date.now();
+
+  // Quitamos .orderBy("expira_en") para evitar el error de índice en Firestore
+  unsubscribeEstados = db.collection("estados")
+    .where("expira_en", ">", ahora)
+    .onSnapshot(snapshot => {
+      const list = document.getElementById("estados-list");
+      if (!list) return;
+
+      list.innerHTML = "";
+
+      let estados = [];
+      snapshot.forEach(doc => {
+        estados.push({ id_documento: doc.id, ...doc.data() });
+      });
+
+      // Ordenar: los más recientes primero
+      estados.sort((a, b) => b.creado_en - a.creado_en);
+
+      // Renderizar
+      estados.forEach(renderEstado);
+    }, error => {
+      console.error("Error escuchando estados:", error);
+    });
+}
+
+listenForEstados();
+
+function renderEstado(estado) {
   const list = document.getElementById("estados-list");
+  if (!list) return; // Validación por si no existe el contenedor en la página
+
   const card = document.createElement("div");
   card.className = "community-card";
-  card.dataset.name = (displayName || "").toLowerCase();
+  card.dataset.name = (estado.usuario_id || "").toLowerCase();
 
-  let htmlContent = `<strong>${displayName}</strong><p>${text || ""}</p>`;
-  if (imgSrc) {
-    htmlContent += `<img src="${imgSrc}" style="width:100%; border-radius:10px; margin-top:8px; max-height:200px; object-fit:cover;">`;
+  // 1. Agregamos comillas invertidas `` al HTML principal
+  let html = `<strong>${estado.usuario_id || "Usuario"}</strong><p>${estado.texto || ""}</p>`;
+
+  // 2. Agregamos comillas invertidas `` al fragmento de la imagen
+  if (estado.imagen_url) {
+    html += `<img src="${estado.imagen_url}" style="width:100%; border-radius:10px; margin-top:8px; max-height:200px; object-fit:cover;">`;
   }
-  card.innerHTML = htmlContent;
-  list.prepend(card);
+
+  card.innerHTML = html;
+  list.appendChild(card);
 }
 
 // Filtra las tarjetas de "Actualizaciones recientes" por nombre (barra "Buscar estado")
@@ -398,4 +515,184 @@ async function logoutUser() {
   } catch (error) {
     console.error("Error al cerrar sesión:", error);
   }
+}
+
+function openNewChatPanel() {
+  const panel = document.getElementById("new-chat-panel");
+  if (!panel) return;
+  
+  panel.classList.remove("hidden-init"); // Se muestra el panel
+  loadUsersList(); // Cargar la lista de usuarios si es necesario
+}
+
+function closeNewChatPanel() {
+  const panel = document.getElementById("new-chat-panel");
+  if (!panel) return;
+
+  panel.classList.add("hidden-init"); // Se oculta el panel
+}
+
+function listenForMyPrivateChats() {
+  if (unsubscribePrivateChats) unsubscribePrivateChats();
+
+  unsubscribePrivateChats = db.collection("chats_privados")
+    .where("participantes", "array-contains", currentUser)
+    .onSnapshot(snapshot => {
+      const list = document.getElementById("private-chats-list");
+      list.innerHTML = "";
+
+      let chats = [];
+      snapshot.forEach(doc => chats.push({ id: doc.id, ...doc.data() }));
+
+      chats.sort((a, b) => {
+        const ta = a.ultimaActividad?.toMillis ? a.ultimaActividad.toMillis() : 0;
+        const tb = b.ultimaActividad?.toMillis ? b.ultimaActividad.toMillis() : 0;
+        return tb - ta;
+      });
+
+      chats.forEach(chat => {
+        const otherUid = chat.participantes.find(uid => uid !== currentUser);
+        const otherInfo = chat.participantesInfo?.[otherUid] || { name: "Usuario", photo: defaultAvatar };
+
+        const item = document.createElement("div");
+        item.className = "wa-chat-list-item";
+        item.innerHTML = `
+          <img src="${otherInfo.photo || defaultAvatar}" alt="${otherInfo.name}">
+          <div class="wa-chat-list-info">
+            <strong>${otherInfo.name}</strong>
+            <span>${chat.ultimoMensaje || "Di hola 👋"}</span>
+          </div>
+        `;
+        item.addEventListener("click", () => openPrivateChat(chat.id, otherInfo));
+        list.appendChild(item);
+      });
+    });
+}
+
+function loadUsersList() {
+  const usersListDiv = document.getElementById("users-list");
+  if (!usersListDiv) return;
+
+  usersListDiv.innerHTML = "<p style='padding:15px; color:#888;'>Cargando usuarios...</p>";
+
+  db.collection("usuarios").onSnapshot(snapshot => {
+    usersListDiv.innerHTML = ""; // Limpiar mensaje de carga
+
+    snapshot.forEach(doc => {
+      const userData = doc.data();
+      const uid = doc.id; // O userData.uid
+
+      // Ignorar a tu propio usuario para no darte chat privado a ti mismo
+      if (uid === currentUser) return;
+
+      const userItem = document.createElement("div");
+      userItem.className = "wa-chat-list-item";
+      userItem.innerHTML = `
+        <img src="${userData.photo || defaultAvatar}" alt="${userData.name}">
+        <div class="wa-chat-list-info">
+          <strong>${userData.name || "Usuario"}</strong>
+          <span>${userData.career || "Estudiante"}</span>
+        </div>
+      `;
+
+      // Al hacer clic, iniciar o abrir el chat privado con esta persona
+      userItem.addEventListener("click", () => {
+        startOrOpenPrivateChat(uid, userData);
+      });
+
+      usersListDiv.appendChild(userItem);
+    });
+
+    if (usersListDiv.children.length === 0) {
+      usersListDiv.innerHTML = "<p style='padding:15px; color:#888;'>No hay otros usuarios registrados aún.</p>";
+    }
+  }, error => {
+    console.error("Error al cargar usuarios:", error);
+  });
+}
+
+async function startOrOpenPrivateChat(otherUid, otherData) {
+  try {
+    // Generar un ID único predecible uniendo los dos UIDs en orden alfabético
+    // Esto evita duplicar salas para el mismo par de usuarios
+    const chatId = [currentUser, otherUid].sort().join("_");
+    const chatRef = db.collection("chats_privados").doc(chatId);
+    const chatDoc = await chatRef.get();
+
+    // Si el chat aún no existe en Firestore, lo creamos
+    if (!chatDoc.exists) {
+      await chatRef.set({
+        participantes: [currentUser, otherUid],
+        participantesInfo: {
+          [currentUser]: {
+            name: displayName,
+            photo: photoURL || defaultAvatar
+          },
+          [otherUid]: {
+            name: otherData.name || "Usuario",
+            photo: otherData.photo || defaultAvatar
+          }
+        },
+        ultimoMensaje: "Chat iniciado",
+        ultimaActividad: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    // Cerramos el panel de "Nuevo Chat"
+    closeNewChatPanel();
+
+    // Abrimos el chat privado recién creado/encontrado
+    openPrivateChat(chatId, {
+      name: otherData.name || "Usuario",
+      photo: otherData.photo || defaultAvatar
+    });
+
+  } catch (error) {
+    console.error("Error al iniciar chat privado:", error);
+  }
+}
+
+function openPrivateChat(chatId, otherInfo) {
+  // 1. Cambiamos las variables de control global
+  currentChatType = "privado";
+  currentPrivateChatId = chatId;
+
+  // 2. Elementos del DOM de la cabecera
+  const headerAvatar = document.querySelector(".wa-header-avatar");
+  const headerTitle = document.getElementById("chat-room-title");
+  const headerStatus = document.querySelector(".wa-header-status");
+
+  // 3. Inyectamos los datos específicos del usuario seleccionado
+  if (headerAvatar) headerAvatar.src = otherInfo.photo || defaultAvatar;
+  if (headerTitle) headerTitle.textContent = otherInfo.name || "Usuario";
+  if (headerStatus) headerStatus.textContent = otherInfo.career ? `Carrera: ${otherInfo.career}` : "Chat Privado";
+
+  // 4. Cerramos el panel de "Nuevo Chat" deslizante para ver la conversación
+  closeNewChatPanel();
+
+  // 5. Cargar los mensajes específicos de este chatId desde Firestore
+  listenForPrivateMessages(chatId);
+}
+
+function openGroupChat() {
+  // 1. Cambiar el estado global del chat
+  currentChatType = "grupo";
+  currentPrivateChatId = null;
+
+  // 2. Restaurar la cabecera del grupo
+  const headerAvatar = document.querySelector(".wa-header-avatar");
+  const headerTitle = document.getElementById("chat-room-title");
+  const headerStatus = document.querySelector(".wa-header-status");
+
+  if (headerAvatar) headerAvatar.src = "assets/img/foto de perfil del grupo.jpeg";
+  if (headerTitle) headerTitle.textContent = "Chat de Carrera";
+  if (headerStatus) headerStatus.textContent = "Activo en INTEC";
+
+  // 3. Marcar activo el item del grupo
+  document.querySelectorAll(".wa-chat-list-item").forEach(item => item.classList.remove("active"));
+  const groupItem = document.getElementById("group-chat-item");
+  if (groupItem) groupItem.classList.add("active");
+
+  // 4. Volver a escuchar los mensajes globales/de carrera
+  listenForMessages();
 }
